@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from tensorflow import keras
-from tensorflow.keras.layers import Dense, Conv2D, MaxPooling2D, Input, Flatten
+from tensorflow.keras.layers import Dense, Conv2D, MaxPooling2D, Input, Flatten, Dropout, BatchNormalization
 from tensorflow.keras.preprocessing import image
 # Вспомогательные библиотеки
 import numpy as np
@@ -15,14 +15,20 @@ def build_model():
     model.add(Conv2D(64, (3, 3), activation='relu'))
     model.add(MaxPooling2D((2, 2)))
     model.add(Conv2D(128, (3, 3), activation='relu'))
+    model.add(BatchNormalization())
     model.add(MaxPooling2D((2, 2)))
     model.add(Conv2D(128, (3, 3), activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.2))
     model.add(MaxPooling2D((2, 2)))
     model.add(Flatten())
 
     model.add(Dense(256, activation='elu'))
+    model.add(Dropout(0.2))
     model.add(Dense(128, activation='elu'))
+    model.add(BatchNormalization())
     model.add(Dense(64, activation='elu'))
+    model.add(BatchNormalization())
     model.add(Dense(1, activation='sigmoid'))
 
     model.compile(loss='binary_crossentropy',
@@ -58,7 +64,7 @@ valid_gen = test_datagen.flow_from_directory(
 
 model = build_model()
 
-checkpoint_path = "training_4/cp-{epoch:04d}.ckpt" # поменять папку +1
+checkpoint_path = "training_6/cp-{epoch:04d}.ckpt" # поменять папку +1
 checkpoint_dir = os.path.dirname(checkpoint_path)
 
 cp_callback = keras.callbacks.ModelCheckpoint(
@@ -70,13 +76,13 @@ cp_callback = keras.callbacks.ModelCheckpoint(
 his = model.fit_generator(
     train_gen,
     steps_per_epoch=10,
-    epochs=1000, # поменять на 1000
+    epochs=500, # поменять на 1000
     callbacks=[cp_callback],
     validation_data=valid_gen,
-    validation_steps=1
+    validation_steps=5
 )
 
-model.save("test3.h5") # поменять модель на +1
+model.save("test5.h5") # поменять модель на +1
 
 acc = his.history['acc']
 val_acc = his.history['val_acc']
